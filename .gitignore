@@ -1,0 +1,21 @@
+__pycache__/
+
+# Python virtualenv
+.env
+.venv
+env/
+venv/
+
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE / Editor specific
+.idea/
+.vscode/
+
+# Data files
+data/
+
+# Environment variables
+.env
