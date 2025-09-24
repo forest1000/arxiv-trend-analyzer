@@ -1,10 +1,8 @@
 __pycache__/
 
+
 # Python virtualenv
-.env
-.venv
-env/
-venv/
+arxiv/
 
 
 # Jupyter Notebook
@@ -19,3 +17,8 @@ data/
 
 # Environment variables
 .env
+
+# specific files
+idea.txt
+activate.sh
+asd.py
