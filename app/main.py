@@ -72,3 +72,19 @@ if st.sidebar.button("分析を実行"):
             st.error("論文が見つかりませんでした。キーワードやネットワーク接続を確認してください。")
 else:
     st.info("サイドバーでキーワードを入力し、「分析を実行」ボタンを押してください。")
+
+async def output_paper_info(final_query, max_results):
+    """
+    A function to output paper information asynchronously.
+    """
+    st.markdown("---")
+    st.subheader(paper['title'])
+    st.write(f"**著者:** {', '.join(paper['authors'])}")
+    st.write(f"**投稿日:** {paper['published_date']}")
+    st.write(f"**arXivリンク:** [{paper['url']}]({paper['url']})")
+
+    st.markdown("##### 🤖 LLMによる新規性の要約")
+    st.info(paper['novelty'])
+
+    with st.expander("元の要旨（Abstract）を読む"):
+        st.write(paper['summary'])

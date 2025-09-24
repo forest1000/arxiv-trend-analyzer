@@ -20,16 +20,22 @@ async def analyze_novelty_with_llm(abstract: str) -> str:
         str: LLMによって生成された新規性の要約。エラー時はメッセージを返す。
     """
     prompt = f"""
-    You are an excellent research assistant.
-    Please read the abstract of the paper below and identify the "novelty" and "contribution" of this research.
-    Then, provide a concise summary of them in approximately 70-100 words.
+    Improved Prompt in English
+    You are an expert research assistant specializing in the precise analysis of academic papers.
+    When evaluating a research paper, it is crucial to distinguish between its "Novelty" and its "Contribution."
+    Novelty: Refers to the new ideas, approaches, techniques, or findings that are proposed or demonstrated for the first time in the research. In short, "What is new?"
+    Contribution: Refers to the impact and value that the novelty brings to the specific field of study or to society. In short, "How is it useful?"
+    Based on these definitions, please carefully read the following abstract and specifically identify the research's "Novelty" and "Contribution."
+    #Abstract: {abstract}
 
-    ---
-    Abstract: 
-    {abstract}
-    ---
-
-    Summary of Novelty:
+    Present your analysis clearly in the following bullet-point format.[Analysis]
+    Novelty:
+    (Describe the specific points that this research proposes or demonstrates for the first time.)
+    Contribution:
+    (Describe the value and impact that the novelty brings to the research field or real-world applications.)
+    Finally, synthesize the key points of the identified novelty and contribution into a concise summary of approximately 70-100 words.
+    [Summary] 
+    (Write the summary here.)please only return Novelty, contribution and summary without any additional text in the following format:
     """
     try:
         # Ollamaの非同期クライアントを使用してLLMにリクエストを送信
@@ -74,7 +80,7 @@ async def fetch_arxiv_papers(search_query: str, max_results_per_query: int = 10)
 
         for entry in root.findall('arxiv:entry', namespaces):
             paper_id = entry.find('arxiv:id', namespaces).text
-            if paper_id not in unique_papers: # 重複をチェック
+            if paper_id not in unique_papers: 
                 title = entry.find('arxiv:title', namespaces).text.strip()
                 summary = entry.find('arxiv:summary', namespaces).text.strip().replace('\n', ' ')
                 
@@ -84,7 +90,7 @@ async def fetch_arxiv_papers(search_query: str, max_results_per_query: int = 10)
                     'summary': summary,
                     'published_date': datetime.strptime(entry.find('arxiv:published', namespaces).text, "%Y-%m-%dT%H:%M:%SZ").strftime('%Y-%m-%d'),
                     'url': paper_id,
-                    'novelty': '' # 後で分析結果を入れるための空欄
+                    'novelty': '' 
                 }
     except requests.exceptions.RequestException as e:
         logging.error(f"APIリクエストエラー (クエリ: {query}): {e}")
@@ -93,22 +99,32 @@ async def fetch_arxiv_papers(search_query: str, max_results_per_query: int = 10)
 
     if not unique_papers:
         return []
-
-    # LLMによる新規性分析を並行して実行
-    logging.info(f"{len(unique_papers)}件のユニークな論文の新規性を分析します...")
-    tasks = [
-        analyze_novelty_with_llm(paper['summary']) 
+    
+    task_to_paper = {
+        asyncio.create_task(analyze_novelty_with_llm(paper['summary'])): paper
         for paper in unique_papers.values()
-    ]
-    novelty_results = await asyncio.gather(*tasks)
+    }
+    processed_papers = []
 
-    # 分析結果を元の辞書に格納
-    for paper, novelty_text in zip(unique_papers.values(), novelty_results):
-        paper['novelty'] = novelty_text
+    logging.info(f"{len(unique_papers)}件のユニークな論文の新規性を分析します...")
+    
+    for future in asyncio.as_completed(task_to_paper.keys()):
+        try:
+            paper = task_to_paper[future]
+            paper = task_to_paper[future]
+            novelty_text = await future
+            paper['novelty'] = novelty_text
+            
+            yield paper
 
-    # 投稿日でソートしてリストとして返す
-    sorted_papers = sorted(list(unique_papers.values()), key=lambda p: p['published_date'], reverse=True)
-    return sorted_papers
+        except Exception as e:
+            paper = task_to_paper[future]
+            paper['novelty'] = f"分析エラー: {e}"
+
+            yield paper
+
+
+
 
 if __name__ == '__main__':
     test_query = "happy"
