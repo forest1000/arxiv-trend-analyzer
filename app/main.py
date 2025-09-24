@@ -1,6 +1,8 @@
-import streamlit as st
 import asyncio
-from arxiv_fetcher import fetch_arxiv_papers # こちらのファイルに変更はありません
+
+import streamlit as st
+
+from arxiv_fetcher import fetch_arxiv_papers
 
 # --- ページ設定 ---
 st.set_page_config(
@@ -15,7 +17,10 @@ st.markdown("""
 このアプリは、arXiv.orgに投稿された論文を検索し、**あなたのPCで動作するLLMが各論文の新規性を要約**します。
 複数のキーワードを**カンマ（,）**で区切って入力することで、それら全てを含む論文をAND検索できます。
 """)
-st.warning("**注意:** このアプリを使用するには、事前にOllamaをインストールし、バックグラウンドで起動しておく必要があります。")
+st.warning(
+    "**注意:** 初回実行時にHugging Faceの要約モデルをダウンロードします。"
+    " GPUが利用可能な場合は自動的に使用されます。"
+)
 
 
 # --- サイドバー ---
@@ -45,10 +50,12 @@ if st.sidebar.button("分析を実行"):
         st.sidebar.success("生成されたクエリ:")
         st.sidebar.code(final_query, language='text')
 
-        with st.spinner("論文データを取得し、ローカルLLMで新規性を分析しています... PCの性能によっては時間がかかります。"):
+        with st.spinner(
+            "論文データを取得し、ローカルLLM (GPU対応) で新規性を分析しています。"
+            " 初回はモデルの読み込みに時間がかかる場合があります。"
+        ):
             try:
-                # 生成した単一のクエリをリストに入れてfetcherに渡す
-                papers = asyncio.run(fetch_arxiv_papers([final_query], max_results))
+                papers = asyncio.run(fetch_arxiv_papers(final_query, max_results))
             except Exception as e:
                 st.error(f"処理中にエラーが発生しました: {e}")
                 papers = []
