@@ -1,6 +1,6 @@
 import streamlit as st
 import asyncio
-from arxiv_fetcher import fetch_arxiv_papers # こちらのファイルに変更はありません
+from arxiv_fetcher import fetch_arxiv_papers 
 
 # --- ページ設定 ---
 st.set_page_config(
