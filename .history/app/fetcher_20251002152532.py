@@ -13,6 +13,7 @@ def search_iter(
     max_results: int = 2000,
     sleep_sec: float = 0.2,
     ) -> Iterator[Paper]:
+    # arXivの submittedDate フィルタをクエリに付与
     parts = [f"({query})"]
     if start or end:
         s = (start or datetime(1990, 1, 1)).strftime("%Y%m%d")

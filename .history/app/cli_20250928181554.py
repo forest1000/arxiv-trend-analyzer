@@ -54,6 +54,9 @@ def fetch(
 
     typer.echo(f"fetched & upserted: {n}")
 
+
+
+
 @app.command()
 def trend(
         query: str = typer.Argument(..., help="keyword to filter title/summary"),

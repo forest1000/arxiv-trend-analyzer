@@ -25,12 +25,18 @@ count INTEGER NOT NULL
 );
 """
 
+
+
+
 def get_conn(db_path: Path) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.executescript(SCHEMA)
     return conn
+
+
+
 
 def upsert_papers(conn: sqlite3.Connection, rows: Iterable[Tuple]) -> int:
     rows = list(rows)
@@ -43,6 +49,9 @@ def upsert_papers(conn: sqlite3.Connection, rows: Iterable[Tuple]) -> int:
     )
     conn.commit()
     return len(rows)
+
+
+
 
 def log_fetch(conn: sqlite3.Connection, query: str, fetched_at: str, count: int) -> None:
     conn.execute(

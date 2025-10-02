@@ -10,11 +10,16 @@ from .store import get_conn, log_fetch
 from .analyzer import weekly_counts
 from .viz import save_lineplot
 
+
+
+
 # イベント・ハンドラ
+
 
 def on_fetch_completed(ev: FetchCompleted) -> None:
     """取得完了後、自動で集計＆可視化を行う。"""
     conn = get_conn(Path("data/papers.db"))
+
 
     # ログ（再現性のため）
     log_fetch(conn, ev.query, datetime.utcnow().isoformat(), ev.count)
@@ -32,6 +37,7 @@ def on_fetch_completed(ev: FetchCompleted) -> None:
     out = Path("out"); out.mkdir(parents=True, exist_ok=True)
     wc.to_csv(out / f"trend_{ev.query}.csv")
     save_lineplot(wc, out / f"trend_{ev.query}.png")
+
 
 
 

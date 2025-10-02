@@ -9,6 +9,9 @@ from pydantic import BaseModel
 class Event(BaseModel):
     """Base Event."""
 
+
+
+
 class FetchCompleted(Event):
     query: str
     count: int
@@ -26,4 +29,5 @@ class EventBus:
         for h in list(self._subs[type(event)]):
             h(event)
 
+# アプリ内シングルトン（必要に応じて差し替え可能）
 bus = EventBus()
